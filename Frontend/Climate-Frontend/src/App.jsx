@@ -125,15 +125,32 @@ function App() {
     setModalIsOpen(false);
   };
 
-  const handleNewsletterSignup = (e) => {
+  const handleNewsletterSignup = async (e) => {
     e.preventDefault();
-    if (email) {
-      alert(`Thank you! Daily climate news summary will be sent to: ${email}`);
-      setEmail(""); 
-      closeModal(); 
-    } else {
-      alert("Please enter a valid email.");
+  if (email) {
+    try {
+      const res = await fetch("http://127.0.0.1:8000/api/subscribe/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        alert(`Thank you! Daily climate news summary will be sent to: ${email}`);
+        setEmail("");
+        closeModal();
+      } else {
+        alert(data.message || "Subscription failed.");
+      }
+    } catch (error) {
+      alert("An error occurred. Please try again.");
     }
+  } else {
+    alert("Please enter a valid email.");
+  }
   };
 
   return (

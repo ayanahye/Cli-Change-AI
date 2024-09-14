@@ -7,4 +7,5 @@ urlpatterns = [
     path('chat-completion/', views.chat_completion_view, name='chat_completion_view'),  
     path('get_week_news/', views.get_week_news, name='get_week_news'),
     path('chat-completion-week/', views.get_week_summaries, name='get_week_summaries'),
+    path('subscribe/', views.subscribe_to_newsletter, name='subscribe_to_newsletter'),
 ]
