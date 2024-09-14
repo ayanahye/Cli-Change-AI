@@ -6,6 +6,7 @@ import requests
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 import requests
+from datetime import datetime
 
 # Create your views here.
 
@@ -48,17 +49,20 @@ def chat_completion_view(request):
 
 @csrf_exempt
 def get_climate_change_news(request):
-    url = f"https://api.thenewsapi.com/v1/news/headlines"
+    today = datetime.today().strftime('%Y-%m-%d')
+
+    url = f"https://api.thenewsapi.com/v1/news/top"
     params = {
-        "locale": "us",
         "language": "en", 
         "api_token": NEWS_API_KEY,
-        "search": "climate+change",
+        "search": "climate change | weather",
+        "published_on": today,
     }
 
     response = requests.get(url, params=params)
     if response.status_code == 200:
         data = response.json()
+        print(data)
         return JsonResponse(data)
     else:
         return JsonResponse({"error": "Unable to fetch data"}, status=response.status_code)
