@@ -2,6 +2,9 @@ import React, { useEffect, useState } from "react";
 import './App.css';
 import Data from './data.json';
 import Data2 from './data2.json';
+import Modal from 'react-modal';
+
+Modal.setAppElement('#root');
 
 function App() {
   const [headlines, setHeadlines] = useState([]);
@@ -11,6 +14,9 @@ function App() {
   const [weekSummaries, setWeekSummaries] = useState("");
   const [AIWeekSummary, setAIWeekSummary] = useState("");
   const [tapped, setTapped] = useState(false);
+
+  const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [email, setEmail] = useState(""); 
 
   useEffect(() => {
     const fetchHeadlines = async () => {
@@ -79,7 +85,7 @@ function App() {
     try {
       if (weekSummaries.length === 0) {
         console.log("weekSummaries is empty. Fetching data...");
-        await handleSeePrev(); // Ensure weekSummaries is populated
+        await handleSeePrev(); 
       }
         
       console.log(weekSummaries)
@@ -107,6 +113,26 @@ function App() {
       setAIWeekSummary(data.response);  
     } catch (err) {
       setError(err.message);
+    }
+  };
+
+  const openModal = () => {
+    setModalIsOpen(true);
+  };
+
+
+  const closeModal = () => {
+    setModalIsOpen(false);
+  };
+
+  const handleNewsletterSignup = (e) => {
+    e.preventDefault();
+    if (email) {
+      alert(`Thank you! Daily climate news summary will be sent to: ${email}`);
+      setEmail(""); 
+      closeModal(); 
+    } else {
+      alert("Please enter a valid email.");
     }
   };
 
@@ -144,6 +170,7 @@ function App() {
             <li key={index}>
               <h3>{summary.title}</h3>
               <p>{summary.description}</p>
+              <p><strong>Date:</strong> {summary.date}</p>
               <a href={summary.url} target="_blank" rel="noopener noreferrer">Read more</a>
             </li>
           ))}
@@ -157,6 +184,32 @@ function App() {
             <p>{AIWeekSummary}</p>
           </div>
         )}
+
+      <button onClick={openModal} className="summarize-button">Sign up for newsletter</button>
+      <Modal
+        isOpen={modalIsOpen}
+        onRequestClose={closeModal}
+        contentLabel="Newsletter Signup"
+        className="Modal"
+        overlayClassName="Overlay"
+      >
+        <h2>Sign up for Daily Climate News Summary</h2>
+        <form onSubmit={handleNewsletterSignup}>
+          <label>
+            Email:
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter your email"
+              required
+            />
+          </label>
+          <button type="submit">Subscribe</button>
+          <button onClick={closeModal}>Cancel</button>
+        </form>
+      </Modal>
+
     </div>
   );
 }

@@ -134,7 +134,7 @@ def get_week_news(request):
             "language": "en", 
             "api_token": NEWS_API_KEY,
             "search": "climate change | weather",
-            "published_on": date
+            "published_on": date,
         }
 
         response = requests.get(url, params=params)
@@ -145,7 +145,8 @@ def get_week_news(request):
                 results.append({
                 'title': article['title'],
                 'description': article['description'],
-                'url': article['url']
+                'url': article['url'],
+                'date': date,
                 })
         else:
             return JsonResponse({"error": "Unable to fetch data"}, status=response.status_code)
