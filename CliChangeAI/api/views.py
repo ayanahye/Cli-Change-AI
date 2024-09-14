@@ -6,7 +6,7 @@ import requests
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 import requests
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 
 # Create your views here.
@@ -35,7 +35,7 @@ def chat_completion_view(request):
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)})
 
-    message = f"Summarize the following articles {articles} in 2-3 sentences for the whole summary. Use plaintext English and simplify where necessary but do not skip important / relevant information to climate change."
+    message = f"Summarize the following articles {articles} in 2-3 sentences for the whole summary. Use plaintext English and simplify where necessary but do not skip important / relevant information to climate change. Do not include irrelvant notes just output the summary"
     try:
         chat_completion = client.chat.completions.create(
             messages=[
@@ -47,6 +47,46 @@ def chat_completion_view(request):
             model="llama3-8b-8192",
         )
         response = chat_completion.choices[0].message.content
+
+        return JsonResponse({
+            'success': True,
+            'response': response,
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e),
+        })
+
+@csrf_exempt
+def get_week_summaries(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            articles = data.get("articles", [])
+            print(articles)
+
+            if not articles:
+                return JsonResponse({'success': False, 'error': 'No articles provided.'})
+        except json.JSONDecodeError:
+            return JsonResponse({'success': False, 'error': 'Invalid JSON in request body.'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+
+    message = f"Summarize the following articles {articles} in 2-3 sentences for the whole summary. Use plaintext English and simplify where necessary but do not skip important / relevant information to climate change. Do not include irrelvant notes just output the summary"
+    try:
+        chat_completion = client.chat.completions.create(
+            messages=[
+                {
+                    "role": "user",
+                    "content": message,
+                }
+            ],
+            model="llama3-8b-8192",
+        )
+        response = chat_completion.choices[0].message.content
+        print(response)
 
         return JsonResponse({
             'success': True,
@@ -81,27 +121,34 @@ def get_climate_change_news(request):
         return JsonResponse({"error": "Unable to fetch data"}, status=response.status_code)
 
 @csrf_exempt
-def get_week_summaries(request):
+def get_week_news(request):
     today = datetime.today()
-    last_week = today - timedelta(days=7)
-    from_date = last_week.strftime('%Y-%m-%d')
-    to_date = today.strftime('%Y-%m-%d')
 
-    url = f"https://api.thenewsapi.com/v1/news/top"
-    params = {
-        "language": "en", 
-        "api_token": NEWS_API_KEY,
-        "search": "climate change | weather",
-        "published_before": from_date,
-        "published_after": to_date
+    results = []
 
-    }
+    for i in range(5):
+        date = (today - timedelta(days=i)).strftime('%Y-%m-%d')
 
-    response = requests.get(url, params=params)
-    if response.status_code == 200:
-        data = response.json()
-        json_res = json.dumps(data)
-        print(json_res)
-        return JsonResponse(data)
-    else:
-        return JsonResponse({"error": "Unable to fetch data"}, status=response.status_code)
+        url = f"https://api.thenewsapi.com/v1/news/top"
+        params = {
+            "language": "en", 
+            "api_token": NEWS_API_KEY,
+            "search": "climate change | weather",
+            "published_on": date
+        }
+
+        response = requests.get(url, params=params)
+        if response.status_code == 200:
+            data = response.json()
+            articles = data.get('data', [])
+            for article in articles:
+                results.append({
+                'title': article['title'],
+                'description': article['description'],
+                'url': article['url']
+                })
+        else:
+            return JsonResponse({"error": "Unable to fetch data"}, status=response.status_code)
+    json_data = json.dumps(results)
+    print(json_data)
+    return JsonResponse({"success": True, "summaries": results})
