@@ -7,6 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 import requests
 from datetime import datetime
+import json
 
 # Create your views here.
 
@@ -22,8 +23,19 @@ client = Groq(
 
 @csrf_exempt
 def chat_completion_view(request):
-    message = "Explain climate change"
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            articles = data.get("articles", [])
 
+            if not articles:
+                return JsonResponse({'success': False, 'error': 'No articles provided.'})
+        except json.JSONDecodeError:
+            return JsonResponse({'success': False, 'error': 'Invalid JSON in request body.'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+
+    message = f"Summarize the following articles {articles} in 2-3 sentences for the whole summary. Use plaintext English and simplify where necessary but do not skip important / relevant information to climate change."
     try:
         chat_completion = client.chat.completions.create(
             messages=[
@@ -62,7 +74,34 @@ def get_climate_change_news(request):
     response = requests.get(url, params=params)
     if response.status_code == 200:
         data = response.json()
-        print(data)
+        json_res = json.dumps(data)
+        print(json_res)
+        return JsonResponse(data)
+    else:
+        return JsonResponse({"error": "Unable to fetch data"}, status=response.status_code)
+
+@csrf_exempt
+def get_week_summaries(request):
+    today = datetime.today()
+    last_week = today - timedelta(days=7)
+    from_date = last_week.strftime('%Y-%m-%d')
+    to_date = today.strftime('%Y-%m-%d')
+
+    url = f"https://api.thenewsapi.com/v1/news/top"
+    params = {
+        "language": "en", 
+        "api_token": NEWS_API_KEY,
+        "search": "climate change | weather",
+        "published_before": from_date,
+        "published_after": to_date
+
+    }
+
+    response = requests.get(url, params=params)
+    if response.status_code == 200:
+        data = response.json()
+        json_res = json.dumps(data)
+        print(json_res)
         return JsonResponse(data)
     else:
         return JsonResponse({"error": "Unable to fetch data"}, status=response.status_code)

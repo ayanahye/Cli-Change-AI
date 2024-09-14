@@ -1,21 +1,26 @@
 import React, { useEffect, useState } from "react";
 import './App.css';
+import Data from './data.json';
 
 function App() {
   const [headlines, setHeadlines] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [summary, setSummary] = useState("");
+  const [weekSummaries, setWeekSummaries] = useState("");
 
   useEffect(() => {
     const fetchHeadlines = async () => {
       try {
-        const res = await fetch("http://127.0.0.1:8000/api/headlines/");
+        //const res = await fetch("http://127.0.0.1:8000/api/headlines/");
+        /*
         if (!res.ok) {
           throw new Error("Network response was not ok");
         }
-        const data = await res.json();
-        setHeadlines(data.general);  
+        */
+        //const data = await res.json();
+        const data = Data;
+        setHeadlines(data.data);  
       } catch (err) {
         setError(err.message);
       } finally {
@@ -34,7 +39,7 @@ function App() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          headlines: headlines.map(headline => headline.description),  
+          articles: headlines,
         }),
       });
 
@@ -49,9 +54,21 @@ function App() {
     }
   };
 
+  const handleSummarizePrev = async () => {
+    // make a req backend that gets whole week of summaries
+    try {
+      const res = await fetch("http://127.0.0.1:8000/api/get_week_summaries/")
+      if (!res.ok) {
+        throw new Error("Network response was not ok");
+      }
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
   return (
     <div className="App">
-      <h1>Latest Headlines</h1>
+      <h1>Latest News</h1>
       
       {loading && <p>Loading headlines...</p>}
       {error && <p style={{ color: "red" }}>Error: {error}</p>}
@@ -67,14 +84,18 @@ function App() {
         ))}
       </div>
 
-      <button onClick={handleSummarize} className="summarize-button">Summarize Headlines</button>
+      <button onClick={handleSummarize} className="summarize-button">Summarize News</button>
 
       {summary && (
         <div className="summary-section">
-          <h2>Summary</h2>
+          <h2>AI Summary</h2>
           <p>{summary}</p>
         </div>
       )}
+      <button onClick={handleSummarizePrev} className="summarize-button">See Old Summaries</button>
+      <div className="previous">
+        <h2>Previous Summaries</h2>
+      </div>
     </div>
   );
 }

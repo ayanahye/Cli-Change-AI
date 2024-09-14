@@ -27,8 +27,19 @@
   border: none;
   cursor: pointer;
   border-radius: 4px;
+  display: block; 
+  text-align: center; 
+  width: 100%;
 }
 
 .summary-section {
   margin-top: 20px;
+}
+
+.App {
+  margin: 50px;
+}
+
+.previous {
+
 }
