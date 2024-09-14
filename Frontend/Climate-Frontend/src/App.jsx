@@ -10,6 +10,7 @@ function App() {
   const [summary, setSummary] = useState("");
   const [weekSummaries, setWeekSummaries] = useState("");
   const [AIWeekSummary, setAIWeekSummary] = useState("");
+  const [tapped, setTapped] = useState(false);
 
   useEffect(() => {
     const fetchHeadlines = async () => {
@@ -59,6 +60,7 @@ function App() {
   const handleSeePrev = async () => {
     // make a req backend that gets whole week of summaries
     try {
+      setTapped(true);
       //const res = await fetch("http://127.0.0.1:8000/api/get_week_news/")
       /*
       if (!res.ok) {
@@ -75,21 +77,11 @@ function App() {
 
   const handleWeekSummarize = async () => {
     try {
-      if (weekSummaries == "") {
-        try {
-          //const res = await fetch("http://127.0.0.1:8000/api/get_week_news/")
-          /*
-          if (!res.ok) {
-            throw new Error("Network response was not ok");
-          }
-          */
-          //const data = await res.json();
-          const data = Data2;
-          setWeekSummaries(data);
-        } catch (err) {
-          setError(err.message);
-        }
+      if (weekSummaries.length === 0) {
+        console.log("weekSummaries is empty. Fetching data...");
+        await handleSeePrev(); // Ensure weekSummaries is populated
       }
+        
       console.log(weekSummaries)
       const res = await fetch("http://127.0.0.1:8000/api/chat-completion-week/", {
         method: "POST",
@@ -106,7 +98,12 @@ function App() {
       }
 
       const data = await res.json();
-      print(data)
+      console.log(data); 
+      if (data.success) {
+        setAIWeekSummary(data.response);
+      } else {
+        setError(data.error || "Failed to summarize");
+      }
       setAIWeekSummary(data.response);  
     } catch (err) {
       setError(err.message);
@@ -140,7 +137,7 @@ function App() {
         </div>
       )}
       <button onClick={handleSeePrev} className="summarize-button">See This Week's News</button>
-      {weekSummaries && weekSummaries.length > 0 && (
+      {weekSummaries && weekSummaries.length > 0 && tapped && (
       <div className="previous">
         <ul>
           {weekSummaries.map((summary, index) => (
