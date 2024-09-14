@@ -138,79 +138,91 @@ function App() {
 
   return (
     <div className="App">
-      <h1>Latest News</h1>
-      
-      {loading && <p>Loading headlines...</p>}
-      {error && <p style={{ color: "red" }}>Error: {error}</p>}
+      <div className="cont">
+        <header className="header">
+          <h1>Cli-Change AI</h1>
+          <nav>
+            <button onClick={openModal} className="nav-button">Subscribe</button>
+          </nav>
+        </header>
 
-      <div className="headline-list">
-        {headlines.map((headline) => (
-          <div key={headline.uuid} className="headline-card">
-            <img src={headline.image_url} alt={headline.title} className="headline-image" />
-            <h3>{headline.title}</h3>
-            <p>{headline.description}</p>
-            <a href={headline.url} target="_blank" rel="noopener noreferrer">Read more</a>
-          </div>
-        ))}
-      </div>
+        {loading && <p>Loading headlines...</p>}
+        {error && <p className="error">{error}</p>}
 
-      <button onClick={handleSummarize} className="summarize-button">Summarize News</button>
+        <div className="headline-grid">
+          {headlines.map((headline) => (
+            <div key={headline.uuid} className="headline-card">
+              <img src={headline.image_url} alt={headline.title} className="headline-image" />
+              <div className="headline-content">
+                <h3>{headline.title}</h3>
+                <p>{headline.description}</p>
+                <div className="headline-actions">
+                  <button className="action-button">Like</button>
+                  <a href={headline.url} target="_blank" rel="noopener noreferrer" className="cust-link">Read more</a>
 
-      {summary && (
-        <div className="summary-section">
-          <h2>AI Summary</h2>
-          <p>{summary}</p>
-        </div>
-      )}
-      <button onClick={handleSeePrev} className="summarize-button">See This Week's News</button>
-      {weekSummaries && weekSummaries.length > 0 && tapped && (
-      <div className="previous">
-        <ul>
-          {weekSummaries.map((summary, index) => (
-            <li key={index}>
-              <h3>{summary.title}</h3>
-              <p>{summary.description}</p>
-              <p><strong>Date:</strong> {summary.date}</p>
-              <a href={summary.url} target="_blank" rel="noopener noreferrer">Read more</a>
-            </li>
+                </div>
+              </div>
+            </div>
           ))}
-          </ul>
         </div>
-        )}
-        <button onClick={handleWeekSummarize} className="summarize-button">Summarize This Weeks News</button>
-        {AIWeekSummary && (
+
+        <button onClick={handleSummarize} className="summarize-button">Summarize News</button>
+
+        {summary && (
           <div className="summary-section">
             <h2>AI Summary</h2>
+            <p>{summary}</p>
+          </div>
+        )}
+        
+        <button onClick={handleSeePrev} className="summarize-button">See This Week's News</button>
+        {weekSummaries.length > 0 && tapped && (
+          <div className="previous-news">
+            <ul>
+              {weekSummaries.map((summary, index) => (
+                <li key={index}>
+                  <h3>{summary.title}</h3>
+                  <p>{summary.description}</p>
+                  <p><strong>Date:</strong> {summary.date}</p>
+                  <a href={summary.url} target="_blank" rel="noopener noreferrer">Read more</a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        <button onClick={handleWeekSummarize} className="summarize-button">Summarize This Week's News</button>
+        {AIWeekSummary && (
+          <div className="summary-section">
+            <h2>AI Weekly Summary</h2>
             <p>{AIWeekSummary}</p>
           </div>
         )}
 
-      <button onClick={openModal} className="summarize-button">Sign up for newsletter</button>
-      <Modal
-        isOpen={modalIsOpen}
-        onRequestClose={closeModal}
-        contentLabel="Newsletter Signup"
-        className="Modal"
-        overlayClassName="Overlay"
-      >
-        <h2>Sign up for Daily Climate News Summary</h2>
-        <form onSubmit={handleNewsletterSignup}>
-          <label>
-            Email:
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
-              required
-            />
-          </label>
-          <button type="submit">Subscribe</button>
-          <button onClick={closeModal}>Cancel</button>
-        </form>
-      </Modal>
-
-    </div>
+        <Modal
+          isOpen={modalIsOpen}
+          onRequestClose={closeModal}
+          contentLabel="Newsletter Signup"
+          className="Modal"
+          overlayClassName="Overlay"
+        >
+          <h2>Sign up for Daily News Summary</h2>
+          <form onSubmit={handleNewsletterSignup}>
+            <label>
+              Email:
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your email"
+                required
+              />
+            </label>
+            <button type="submit" className="submit-button">Subscribe</button>
+            <button type="button" onClick={closeModal} className="cancel-button">Cancel</button>
+          </form>
+        </Modal>
+        </div>
+      </div>
   );
 }
 
