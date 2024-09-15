@@ -23,6 +23,7 @@ from django.views.decorators.csrf import csrf_exempt
 from .models import Article, ArticleLike
 from django.contrib.auth import get_user_model
 from django.conf import settings
+from django.utils import timezone
 
 User = get_user_model()
 
@@ -343,7 +344,7 @@ def get_week_news(request):
                     'description': article.description,
                     'url': article.url,
                     'date': article.published_at.strftime('%Y-%m-%d'),
-                    'likes': article.likes,
+                    'likes': article.likes_count,
                     'liked': ArticleLike.objects.filter(article=article, ip_address=request.META.get('REMOTE_ADDR')).exists()
                 })
         else:
