@@ -20,6 +20,11 @@ import json
 from datetime import datetime, timedelta
 from .models import Subscriber
 from django.views.decorators.csrf import csrf_exempt
+from .models import Article, ArticleLike
+from django.contrib.auth import get_user_model
+from django.conf import settings
+
+User = get_user_model()
 
 # Create your views here.
 
@@ -40,42 +45,83 @@ client = Groq(
 
 @csrf_exempt
 def subscribe_to_newsletter(request):
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            email = data.get("email")
+    if request.method != "POST":
+        return JsonResponse({'success': False, 'message': 'Only POST requests are allowed.'})
 
-            if email:
-                subscriber, created = Subscriber.objects.get_or_create(email=email)
-                if created:
-                    subject = "Welcome to Daily Climate News"
-                    message = "Thank you for subscribing to our daily climate news summary. You'll receive daily updates in your inbox."
+    try:
+        data = json.loads(request.body)
+        email = data.get("email")
 
-                    msg = MIMEMultipart()
-                    msg['From'] = SMTP_USERNAME
-                    msg['To'] = email
-                    msg['Subject'] = subject
-                    msg.attach(MIMEText(message, 'plain'))
+        if not email:
+            return JsonResponse({'success': False, 'message': 'Invalid email.'})
 
-                    try:
-                        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
-                            server.starttls()
-                            server.login(SMTP_USERNAME, SMTP_PASSWORD)
-                            server.sendmail(SMTP_USERNAME, email, msg.as_string())
-                        return JsonResponse({'success': True, 'message': 'Subscription successful! Daily emails will be sent to you.'})
-                    except Exception as e:
-                        return JsonResponse({'success': False, 'message': f'Failed to send email: {str(e)}'})
-                else:
-                    return JsonResponse({'success': False, 'message': 'Email already subscribed.'})
+        subscriber, created = Subscriber.objects.get_or_create(email=email)
+        if created:
+            subscriber.subscribed = True
+            subscriber.save()
+            message = "Thank you for subscribing to our daily climate news summary. You'll receive daily updates in your inbox."
+        else:
+            if not subscriber.subscribed:
+                subscriber.subscribed = True
+                subscriber.save()
+                message = "You have been successfully re-subscribed to our daily climate news summary."
             else:
-                return JsonResponse({'success': False, 'message': 'Invalid email.'})
-        except json.JSONDecodeError:
-            return JsonResponse({'success': False, 'message': 'Invalid JSON in request body.'})
-        except Exception as e:
-            return JsonResponse({'success': False, 'message': str(e)})
-    return JsonResponse({'success': False, 'message': 'Only POST requests are allowed.'})
+                return JsonResponse({'success': False, 'message': 'Email already subscribed.'})
 
+        articles = fetch_weekly_articles()[:3] 
+        
+        if articles:
+            message_content = "Summary:\n\n"
+            for article in articles:
+                message_content += f"- {article['title']}: {article['url']}\n"  # Add the link to the article
 
+            chat_completion = client.chat.completions.create(
+                messages=[{"role": "user", "content": message_content}],
+                model="llama3-8b-8192",
+            )
+            summary = chat_completion.choices[0].message.content
+        else:
+            summary = "No articles available today. We'll keep you updated with the latest climate news soon!"
+
+        subject = "Welcome to Daily Climate News"
+        body = f"""
+Dear Subscriber,
+
+{message}
+
+Here's a brief summary of today's climate news to get you started:
+
+{summary}
+
+You'll receive daily updates like this in your inbox. We hope you find them informative and engaging.
+
+If you wish to unsubscribe at any time, please visit our website and use the unsubscribe option.
+
+Best regards,
+Cli-Change AI Team
+        """
+
+        msg = MIMEMultipart()
+        msg['From'] = settings.EMAIL_HOST_USER
+        msg['To'] = email
+        msg['Subject'] = subject
+        msg.attach(MIMEText(body, 'plain'))
+
+        with smtplib.SMTP(settings.EMAIL_HOST, settings.EMAIL_PORT) as server:
+            server.starttls()
+            server.login(settings.EMAIL_HOST_USER, settings.EMAIL_HOST_PASSWORD)
+            server.send_message(msg)
+
+        return JsonResponse({'success': True, 'message': 'Subscription successful! A welcome email with today\'s summary has been sent to you.'})
+
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'message': 'Invalid JSON in request body.'})
+    except smtplib.SMTPException as e:
+        return JsonResponse({'success': False, 'message': f'Failed to send email: {str(e)}'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': f'An error occurred: {str(e)}'})
+
+@csrf_exempt
 def unsubscribe_from_newsletter(request):
     if request.method == "POST":
         data = json.loads(request.body)
@@ -90,6 +136,7 @@ def unsubscribe_from_newsletter(request):
             except Subscriber.DoesNotExist:
                 return JsonResponse({'success': False, 'message': 'Email not found.'})
         return JsonResponse({'success': False, 'message': 'Invalid email.'})
+    return JsonResponse({'success': False, 'message': 'Only POST requests are allowed.'})
 
 @csrf_exempt
 def chat_completion_view(request):
@@ -165,7 +212,7 @@ def fetch_weekly_articles():
 def get_week_summaries(request):
     if request.method == "POST":
         try:
-            articles = fetch_weekly_articles()  # Use the helper function
+            articles = fetch_weekly_articles()  
             if not articles:
                 return JsonResponse({'success': False, 'error': 'No articles found.'})
         except Exception as e:
@@ -209,11 +256,63 @@ def get_climate_change_news(request):
     response = requests.get(url, params=params)
     if response.status_code == 200:
         data = response.json()
-        json_res = json.dumps(data)
-        print(json_res)
-        return JsonResponse(data)
+        print(data)
+        articles_data = data.get('data', [])
+
+        articles_response = []
+
+
+        ip_address = request.META.get('REMOTE_ADDR')
+        
+        for article_data in articles_data:
+            article, created = Article.objects.update_or_create(
+                uuid=article_data['uuid'],
+                defaults={
+                'title': article_data['title'],
+                'description': article_data['description'],
+                'url': article_data['url'],
+                'image_url': article_data['image_url'],
+                'published_at': datetime.strptime(article_data['published_at'], "%Y-%m-%dT%H:%M:%S.%fZ"),
+                }
+            )
+            
+            liked = ArticleLike.objects.filter(article=article, ip_address=ip_address).exists()
+            
+            articles_response.append({
+            'uuid': article.uuid,
+            'title': article.title or "No title available",
+            'description': article.description or "No description available",
+            'url': article.url or "#",
+            'image_url': article.image_url or "path/to/default/image.jpg",
+            'published_at': article.published_at.isoformat(),
+            'likes': article.likes_count,
+            'liked': liked
+        })
+
+        print(articles_response)
+        return JsonResponse({"data": articles_response})
     else:
         return JsonResponse({"error": "Unable to fetch data"}, status=response.status_code)
+
+def create_or_update_article(article_data):
+    article, created = Article.objects.get_or_create(
+        uuid=article_data['uuid'],
+        defaults={
+            'title': article_data['title'],
+            'description': article_data['description'],
+            'url': article_data['url'],
+            'image_url': article_data.get('image_url', ''),
+            'published_at': datetime.strptime(article_data['published_at'], "%Y-%m-%dT%H:%M:%S.%fZ"),
+        }
+    )
+    if not created:
+        article.title = article_data['title']
+        article.description = article_data['description']
+        article.url = article_data['url']
+        article.image_url = article_data.get('image_url', '')
+        article.published_at = datetime.strptime(article_data['published_at'], "%Y-%m-%dT%H:%M:%S.%fZ")
+        article.save()
+    return article
 
 @csrf_exempt
 def get_week_news(request):
@@ -236,15 +335,53 @@ def get_week_news(request):
         if response.status_code == 200:
             data = response.json()
             articles = data.get('data', [])
-            for article in articles:
+            for article_data in articles:
+                article = create_or_update_article(article_data)
                 results.append({
-                'title': article['title'],
-                'description': article['description'],
-                'url': article['url'],
-                'date': date,
+                    'uuid': article.uuid,
+                    'title': article.title,
+                    'description': article.description,
+                    'url': article.url,
+                    'date': article.published_at.strftime('%Y-%m-%d'),
+                    'likes': article.likes,
+                    'liked': ArticleLike.objects.filter(article=article, ip_address=request.META.get('REMOTE_ADDR')).exists()
                 })
         else:
             return JsonResponse({"error": "Unable to fetch data"}, status=response.status_code)
     json_data = json.dumps(results)
     print(json_data)
     return JsonResponse({"success": True, "summaries": results})
+
+@csrf_exempt
+def like_article(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        article_uuid = data.get("uuid")
+        ip_address = request.META.get('REMOTE_ADDR')
+
+        try:
+            article = Article.objects.get(uuid=article_uuid)
+            like, created = ArticleLike.objects.get_or_create(article=article, ip_address=ip_address)
+
+            if created:
+                article.likes_count += 1
+                liked = True
+            else:
+                article.likes_count = max(0, article.likes_count - 1)  
+                like.delete()
+                liked = False
+
+            article.save()
+
+            print(f"Article {article_uuid} liked: {liked}, total likes: {article.likes_count}")
+
+            return JsonResponse({
+                "success": True, 
+                "likes": article.likes_count,
+                "liked": liked,
+                "uuid": article_uuid
+            })
+        except Article.DoesNotExist:
+            return JsonResponse({"success": False, "message": "Article not found"})
+
+    return JsonResponse({"success": False, "message": "Invalid request method"})

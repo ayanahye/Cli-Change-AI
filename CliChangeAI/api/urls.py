@@ -8,4 +8,6 @@ urlpatterns = [
     path('get_week_news/', views.get_week_news, name='get_week_news'),
     path('chat-completion-week/', views.get_week_summaries, name='get_week_summaries'),
     path('subscribe/', views.subscribe_to_newsletter, name='subscribe_to_newsletter'),
+    path('like-article/', views.like_article, name='like_article'),
+    path('unsubscribe/', views.unsubscribe_from_newsletter, name='unsubscribe_from_newsletter'),
 ]
