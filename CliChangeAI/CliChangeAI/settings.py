@@ -28,7 +28,7 @@ CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-7(ocs^uyx1(e6#5$vinbgp7zgz%@d_wnd&%qp$j7d*n=0r$gkh"
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_USE_TLS = True
@@ -49,9 +49,11 @@ CELERY_RESULT_SERIALIZER = 'json'
 CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'cli-change-ai-api.onrender.com',
+]
 
 
 # Application definition
@@ -111,7 +113,7 @@ DATABASES = {
 }
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
+    "https://cli-change-ai.netlify.app/",
 ]
 
 

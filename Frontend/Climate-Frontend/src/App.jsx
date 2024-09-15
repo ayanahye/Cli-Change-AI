@@ -22,7 +22,7 @@ function App() {
   useEffect(() => {
     const fetchHeadlines = async () => {
       try {
-        const res = await fetch("http://127.0.0.1:8000/api/headlines/");
+        const res = await fetch("https://cli-change-ai-api.onrender.com/api/headlines/");
         
         if (!res.ok) {
           throw new Error("Network response was not ok");
@@ -42,7 +42,7 @@ function App() {
 
   const handleSummarize = async () => {
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/chat-completion/", {
+      const res = await fetch("https://cli-change-ai-api.onrender.com/api/chat-completion/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -66,7 +66,7 @@ function App() {
   const handleSeePrev = async () => {
     try {
       setTapped(true);
-      const res = await fetch("http://127.0.0.1:8000/api/get_week_news/");
+      const res = await fetch("https://cli-change-ai-api.onrender.com/api/get_week_news/");
       if (!res.ok) {
         throw new Error("Network response was not ok");
       }
@@ -84,7 +84,7 @@ function App() {
         await handleSeePrev(); 
       }
         
-      const res = await fetch("http://127.0.0.1:8000/api/chat-completion-week/", {
+      const res = await fetch("https://cli-change-ai-api.onrender.com/api/chat-completion-week/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -121,7 +121,7 @@ function App() {
     e.preventDefault();
     if (email) {
       try {
-        const res = await fetch("http://127.0.0.1:8000/api/subscribe/", {
+        const res = await fetch("https://cli-change-ai-api.onrender.com/api/subscribe/", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -147,7 +147,7 @@ function App() {
 
   const handleLike = async (uuid) => {
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/like-article/", {
+      const res = await fetch("https://cli-change-ai-api.onrender.com/api/like-article/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -178,7 +178,7 @@ function App() {
     e.preventDefault();
     if (unsubscribeEmail) {
       try {
-        const res = await fetch("http://127.0.0.1:8000/api/unsubscribe/", {
+        const res = await fetch("https://cli-change-ai-api.onrender.com/api/unsubscribe/", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
