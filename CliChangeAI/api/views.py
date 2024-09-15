@@ -69,18 +69,12 @@ def subscribe_to_newsletter(request):
             else:
                 return JsonResponse({'success': False, 'message': 'Email already subscribed.'})
 
-        articles = fetch_weekly_articles()[:3] 
-        
-        if articles:
-            message_content = "Summary:\n\n"
-            for article in articles:
-                message_content += f"- {article['title']}: {article['url']}\n"  # Add the link to the article
+        articles_data = fetch_today_articles()
 
-            chat_completion = client.chat.completions.create(
-                messages=[{"role": "user", "content": message_content}],
-                model="llama3-8b-8192",
-            )
-            summary = chat_completion.choices[0].message.content
+        if articles_data:
+            message_content = "Summarize the following articles don't write invididual summaries but write one 2-3 sentence one in total. Don't add unnecssary inforation or words: " + ", ".join(article['title'] for article in articles_data)
+            summary_response = chat_completion_view_internal(message_content)
+            summary = summary_response.get('response', "No summary available.")
         else:
             summary = "No articles available today. We'll keep you updated with the latest climate news soon!"
 
@@ -121,6 +115,41 @@ Cli-Change AI Team
         return JsonResponse({'success': False, 'message': f'Failed to send email: {str(e)}'})
     except Exception as e:
         return JsonResponse({'success': False, 'message': f'An error occurred: {str(e)}'})
+
+def fetch_today_articles():
+    today = datetime.today().strftime('%Y-%m-%d')
+
+    url = f"https://api.thenewsapi.com/v1/news/top"
+    params = {
+        "language": "en", 
+        "api_token": NEWS_API_KEY,
+        "search": "climate change | weather",
+        "published_on": today,
+    }
+
+    response = requests.get(url, params=params)
+    if response.status_code == 200:
+        data = response.json()
+        articles_data = data.get('data', [])
+        return articles_data  
+    else:
+        return []  
+
+def chat_completion_view_internal(message_content):
+    try:
+        chat_completion = client.chat.completions.create(
+            messages=[
+                {
+                    "role": "user",
+                    "content": message_content,
+                }
+            ],
+            model="llama3-8b-8192",
+        )
+        response = chat_completion.choices[0].message.content
+        return {'success': True, 'response': response}
+    except Exception as e:
+        return {'success': False, 'error': str(e)}
 
 @csrf_exempt
 def unsubscribe_from_newsletter(request):
