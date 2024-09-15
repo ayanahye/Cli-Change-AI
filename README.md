@@ -1,15 +1,16 @@
 ## Team Member/Designer:
-GitHub: masongu2019
+GitHub: **masongu2019**
 
 ## Inspiration
 - Climate change is one of the most pressing global issues today. We wanted to build a platform that allows individuals to stay informed on climate news and take actionable steps in combating climate change. The idea is to connect the power of AI with easy user engagement, promoting environmental awareness.
 ## What it does
 - Cli-Change AI aggregates climate-related headlines, and users can interact by liking, and subscribing to newsletters, powered by Groq. The platform provides curated, AI-driven insights into the latest developments in climate science, policy, and activism, helping people stay informed and empowered.
 ## Images
-<img src="images/daily.png" alt="Daily" width="300" />
-<img src="images/email.png" alt="Email" width="300" />
-<img src="images/news.png" alt="News" width="300" />
-<img src="images/weekly.png" alt="Weekly" width="300" />
+<img src="images/daily.png" alt="Daily" width="400" />
+<img src="images/email.png" alt="Email" width="400" />
+<img src="images/news.png" alt="News" width="400" />
+<img src="images/weekly.png" alt="Weekly" width="400" />
+
 ## How we built it
 - We built the platform using Django for the backend. We also implemented a daily email system, where subscribers receive curated climate news updates directly to their inbox. They can also see news for the last week and trending news within the last 24 hours and have these summarized by the AI model automatically.
 ## Challenges we ran into
