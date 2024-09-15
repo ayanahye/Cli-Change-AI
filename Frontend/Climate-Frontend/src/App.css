@@ -28,7 +28,7 @@ body {
 .nav-button {
   padding: 10px 20px;
   font-size: 16px;
-  background-color: #007bff;
+  background-color: #ff00ea;
   color: white;
   border: none;
   border-radius: 4px;
@@ -40,7 +40,7 @@ body {
   flex-wrap: wrap;
   gap: 20px;
   padding: 20px;
-  margin-top: 80px;
+  margin-top: 100px;
 }
 
 .headline-card {
@@ -72,7 +72,7 @@ body {
 .action-button {
   padding: 8px 12px;
   font-size: 14px;
-  background-color: #007bff;
+  background-color: #0e3f73;
   color: white;
   border: none;
   border-radius: 4px;
@@ -80,7 +80,7 @@ body {
   margin-right: 10px;
 }
 
-.cust-link{
+.cust-link {
   text-align: center;
   display: flex;
   align-items: center;
@@ -99,7 +99,7 @@ body {
 }
 
 .summarize-button {
-  background-color: #007bff;
+  background-color: #0e3f73;
   color: white;
   display: block;
   width: 100%;
@@ -111,21 +111,21 @@ body {
 }
 
 .submit-button {
-  background-color: #28a745;
+  background-color: #0e3f73;
   color: white;
 }
 
 .submit-button:hover {
-  background-color: #218838;
+  background-color:  #0056b3;
 }
 
 .cancel-button {
-  background-color: #dc3545;
+  background-color: #dc35ce;
   color: white;
 }
 
 .cancel-button:hover {
-  background-color: #c82333;
+  background-color: #c28dbe;
 }
 
 .summary-section {
@@ -186,7 +186,7 @@ input[type="email"] {
 }
 
 .error {
-  color: red;
+  color: #dc35ce;
   font-size: 16px;
   margin: 20px;
 }
@@ -209,11 +209,8 @@ button:active {
 }
 
 .App {
-
   margin: 0 auto;
   padding: 20px;
-
-
 }
 
 .headline-grid {
@@ -225,4 +222,90 @@ button:active {
 
 .headline-card {
   max-width: 100%;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  background-color: #0e3f73;
+  color: white;
+}
+
+.navbar {
+  display: flex;
+  align-items: center;
+}
+
+.nav-button {
+  margin-left: 10px;
+  padding: 10px 20px;
+  background-color: #dc35ce;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  width: 120px;
+  text-align: center;
+  height: 40px;
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .nav-button {
+    color: white;
+    width: 100%;
+    margin: 5px 0;
+  }
+}
+
+body {
+  font-family: 'Merriweather', serif;
+  background-color: #fafafa;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background-color: #001f3f;
+  color: #ffffff;
+  border-bottom: 1px solid #ddd;
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+}
+
+.header h1 {
+  font-size: 24px;
+  margin: 0;
+  font-weight: 700;
+}
+
+.nav-button {
+  margin-left: 10px;
+  padding: 10px 20px;
+  background-color: #dc35ce;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  width: 130px;
+  text-align: center;
+  font-family: 'Merriweather', serif;
+}
+
+.headline-card {
+  font-family: 'Merriweather', serif;
 }
